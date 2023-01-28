@@ -16,4 +16,6 @@ public interface UserService {
 
 
 
+
+  String changeStatus(Integer userId, boolean status);
 }

@@ -6,7 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users",uniqueConstraints = { @UniqueConstraint(columnNames = { "email"}) })
+@Table(name = "users", indexes = {
+        @Index(name = "idx_user_id_email", columnList = "id, email")
+}, uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"email"}),
+
+})
 
 @NoArgsConstructor
 @Getter
@@ -27,6 +32,16 @@ public class User {
       private  String password;
       private  String address;
 
+    @Column(columnDefinition = "boolean default true")
+      private boolean is_active =true;
+
+    public boolean getIs_active() {
+        return is_active;
+    }
+
+    public void setIs_active(boolean is_active) {
+        this.is_active = is_active;
+    }
 
 
 }

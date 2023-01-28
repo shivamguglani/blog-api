@@ -77,6 +77,16 @@ public class UserController {
     }
 
 
+    @PutMapping("/{userId}/changeStatus/{Status}")
+
+    public  ResponseEntity <ApiResponse> changeStatus (@PathVariable   int userId,@PathVariable boolean Status){
+
+       String message= this.userService.changeStatus(userId,Status);
+        return new ResponseEntity<ApiResponse>(new ApiResponse(message,true), HttpStatus.OK);
+
+
+    }
+
 
 
 }

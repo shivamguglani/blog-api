@@ -75,6 +75,23 @@ public class UserServiceImpl implements UserService {
     }
 
 
+
+    @Override
+    public String changeStatus(Integer userId, boolean status) {
+
+        User user =this.userRepo.findById(userId).orElseThrow(()->new ResourceNotFound("User","userId",userId));
+        boolean previousStatus=user.getIs_active();
+        if (previousStatus==status){
+            return  "No Status changed";
+        }
+
+        user.setIs_active(status);
+        User user1=this.userRepo.save(user);
+
+        return "Status changed successfully";
+    }
+
+
     private User dtoToUser (UserDto userdto){
         User user = this.modelMapper.map(userdto,User.class);
 //        user.setId(userdto.getId());
