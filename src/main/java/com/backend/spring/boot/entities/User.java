@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_user_id_email", columnList = "id, email")
@@ -42,6 +45,9 @@ public class User {
     public void setIs_active(boolean is_active) {
         this.is_active = is_active;
     }
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    private List<Post> posts=new ArrayList<>();
 
 
 }
