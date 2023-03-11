@@ -1,5 +1,6 @@
 package com.backend.spring.boot.entities;
 
+import com.backend.spring.boot.payloads.CommentDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users", indexes = {
-        @Index(name = "idx_user_id_email", columnList = "id, email")
+        @Index(name = "idx_user_id_email", columnList = "email")
 }, uniqueConstraints = {
         @UniqueConstraint(columnNames = {"email"}),
 
@@ -48,6 +49,14 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     private List<Post> posts=new ArrayList<>();
+
+
+
+//    private List<Comment> commentList=new ArrayList<>();
+
+
+    @OneToOne
+    private Comment comment;
 
 
 }

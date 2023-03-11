@@ -6,6 +6,7 @@ import com.backend.spring.boot.entities.User;
 import com.backend.spring.boot.exceptions.ResourceNotFound;
 import com.backend.spring.boot.payloads.CategoryDto;
 import com.backend.spring.boot.payloads.PostDto;
+import com.backend.spring.boot.payloads.PostResponse;
 import com.backend.spring.boot.repositories.CategoryRepo;
 import com.backend.spring.boot.repositories.PostRepo;
 import com.backend.spring.boot.repositories.UserRepo;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 
@@ -74,7 +76,7 @@ public class PostServiceImpl implements PostService {
         post.setContent(postDto.getContent());
 
 
-        post.setImageName(post.getImageName());
+        post.setImageName(postDto.getImageName());
         System.out.println(postDto.getImageName());
 
         post.setDate(new Date());
@@ -109,44 +111,115 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostDto> getAllPost(Integer pageNumber,Integer pageSize) {
+    public PostResponse getAllPost(Integer pageNumber, Integer pageSize,String sortBy,String order) {
+         Pageable pageable;
+        System.out.println(order);
+        if (order.equalsIgnoreCase("ASC")){
+             pageable=  PageRequest.of(pageNumber,pageSize, Sort.by(sortBy).ascending());
+        }
+        else{
+             pageable=  PageRequest.of(pageNumber,pageSize, Sort.by(sortBy).descending());
+        }
 
 
 
-        Pageable pageable=  PageRequest.of(pageNumber,pageSize);
+
 
        Page<Post> pagePost = this.postRepo.findAll(pageable);
         List<Post> allPosts = pagePost.getContent();
 
         List<PostDto> allPostsDto = allPosts.stream().map((e) -> this.modelMapper.map(e, PostDto.class)).collect(Collectors.toList());
+        PostResponse postResponse=new PostResponse();
+        postResponse.setContent(allPostsDto);
+        postResponse.setPageNumber(pagePost.getNumber());
+        postResponse.setPageSize(pagePost.getSize());
+        postResponse.setTotalElements(pagePost.getTotalElements());
+        postResponse.setTotalPages(pagePost.getTotalPages());
+        postResponse.setLastPage(pagePost.isLast());
 
-        return  allPostsDto;
+
+        return  postResponse;
     }
 
     @Override
-    public List<PostDto> getPostByCategory(Integer categoryId) {
+    public PostResponse getPostByCategory(Integer categoryId,Integer pageNumber,Integer pageSize) {
 
         Categories categories=this.categoryRepo.findById(categoryId).orElseThrow(()-> new ResourceNotFound("category","categoryId",categoryId));
-        List<Post> posts = this.postRepo.findByCategories(categories);
+        Pageable pageable=  PageRequest.of(pageNumber,pageSize);
 
-//        List<PostDto> postDtos=PostToPostDto(posts);
 
-        List<PostDto> postDtoList = posts.stream().map((e) -> this.modelMapper.map(e, PostDto.class)).collect(Collectors.toList());
 
+        Page<Post> posts = this.postRepo.findByCategories(categories,pageable);
+        List<Post> allPosts = posts.getContent();
+
+
+
+        List<PostDto> postDtoList = allPosts.stream().map((e) -> this.modelMapper.map(e, PostDto.class)).collect(Collectors.toList());
+
+        PostResponse postResponse=new PostResponse();
+        postResponse.setContent(postDtoList);
+        postResponse.setPageNumber(posts.getNumber());
+        postResponse.setPageSize(posts.getSize());
+        postResponse.setTotalElements(posts.getTotalElements());
+        postResponse.setTotalPages(posts.getTotalPages());
+        postResponse.setLastPage(posts.isLast());
+
+        return postResponse;
+    }
+
+    @Override
+    public PostResponse getPostByUser(Integer userId,Integer pageNumber,Integer pageSize) {
+
+//        int pageNumber=0;
+//        int pageSize=5;
+
+
+        User user = this.userRepo.findById(userId).orElseThrow(() -> new ResourceNotFound("user", "userId", userId));
+        Pageable pageable=PageRequest.of(pageNumber,pageSize);
+
+
+
+        Page<Post> postListByUser = this.postRepo.findByUser(user,pageable);
+
+        List<PostDto> postDtos = postListByUser.stream().map((e) -> this.modelMapper.map(e, PostDto.class)).collect(Collectors.toList());
+
+        PostResponse postResponse=new PostResponse();
+        postResponse.setContent(postDtos);
+        postResponse.setPageNumber(postListByUser.getNumber());
+        postResponse.setTotalElements(postListByUser.getTotalPages());
+        postResponse.setPageSize(postListByUser.getSize());
+        postResponse.setLastPage(postListByUser.isLast());
+        postResponse.setTotalPages(postListByUser.getTotalPages());
+
+        return postResponse;
+    }
+
+    @Override
+    public List<PostDto> searchPosts(String keyword) {
+
+        if (keyword.isBlank() ){
+           throw new ResourceNotFound("keword is Empty",keyword,12);
+        }
+
+
+        List<Post> postList = this.postRepo.findByContentContaining(keyword);
+        List<PostDto> postDtoList = postList.stream().map(e -> this.modelMapper.map(e, PostDto.class)).collect(Collectors.toList());
         return postDtoList;
     }
 
     @Override
-    public List<PostDto> getPostByUser(Integer userId) {
+    public List<PostDto> SearchPostByName(String keword) {
 
-        User user = this.userRepo.findById(userId).orElseThrow(() -> new ResourceNotFound("user", "userId", userId));
-        List<Post> postListByUser = this.postRepo.findByUser(user);
+        if (keword.isBlank() ){
+            throw new ResourceNotFound("keword is Empty",keword,12);
+        }
 
-        List<PostDto> postDtos = postListByUser.stream().map((e) -> this.modelMapper.map(e, PostDto.class)).collect(Collectors.toList());
+        List<Post> posts = this.postRepo.SearchPostByName("%"+keword+"%");
+        List<PostDto> list = posts.stream().map(e -> this.modelMapper.map(e, PostDto.class)).collect(Collectors.toList());
+
+        return  list;
 
 
-
-        return postDtos;
     }
 
 

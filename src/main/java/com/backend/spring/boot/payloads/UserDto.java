@@ -1,6 +1,7 @@
 package com.backend.spring.boot.payloads;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
